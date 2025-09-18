@@ -25,7 +25,6 @@ class MCPMessage:
     receiver: str
     payload: str
 
-# Helper: clean document content
 def clean_context(text: str) -> str:
     lines = text.splitlines()
     clean_lines = []
@@ -40,9 +39,7 @@ def clean_context(text: str) -> str:
         clean_lines.append(line)
     return "\n".join(clean_lines)
 
-# ----------------------------
 # Agents
-# ----------------------------
 
 class IngestionAgent:
     def load_documents(self, uploaded_files) -> List:
@@ -110,10 +107,10 @@ Answer concisely:
         result = self.llm_pipeline(
             prompt,
             max_new_tokens=256,
-            temperature=0.0,            # Deterministic output
+            temperature=0.0,           
             top_p=0.95,
-            repetition_penalty=1.5,     # Stronger penalty to prevent repeats
-            do_sample=False,            # Greedy decoding
+            repetition_penalty=1.5,     
+            do_sample=False,            
         )
 
         if isinstance(result, list) and isinstance(result[0], dict):
@@ -121,17 +118,13 @@ Answer concisely:
         else:
             generated_text = str(result)
 
-        # Remove prompt echo if present
         generated_text = generated_text.replace(prompt, "").strip()
 
-        # Truncate at first double newline or repetition artifact
         generated_text = re.split(r'\n{2,}|Apple’s brand identity is associated', generated_text)[0].strip()
 
         return MCPMessage(sender="LLMResponseAgent", receiver="User", payload=generated_text)
 
-# ----------------------------
 # Streamlit UI
-# ----------------------------
 
 st.set_page_config(page_title="Multi-Agent QA Chatbot", page_icon="🤖", layout="centered")
 st.title("🤖 Insight bot")
@@ -148,7 +141,6 @@ if uploaded_files:
 
     retrieval_agent = RetrievalAgent(all_docs)
 
-    # Initialize LLM (CPU-safe)
     model_name = "EleutherAI/gpt-neo-125M"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(model_name)
