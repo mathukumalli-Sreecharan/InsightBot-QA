@@ -24,7 +24,7 @@ class MCPMessage:
     sender: str
     receiver: str
     payload: str
-
+#cleaning the documents
 def clean_context(text: str) -> str:
     lines = text.splitlines()
     clean_lines = []
@@ -41,6 +41,7 @@ def clean_context(text: str) -> str:
 
 # Agents
 
+#ingestion agent  for loading documents
 class IngestionAgent:
     def load_documents(self, uploaded_files) -> List:
         all_documents = []
@@ -74,6 +75,8 @@ class IngestionAgent:
 
         return all_documents
 
+#Retrieval agent for text splitting,creating embeddings, storing in vector database(FAISS)
+
 class RetrievalAgent:
     def __init__(self, docs):
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=50)
@@ -85,14 +88,18 @@ class RetrievalAgent:
         retriever = self.vector_index.as_retriever(search_kwargs={"k": k})
         return retriever.get_relevant_documents(query)
 
+#LLMResponse agent creates promots+user query uses hugging face for piple line for text generation 
+
 class LLMResponseAgent:
     def __init__(self, llm_pipeline):
         self.llm_pipeline = llm_pipeline
 
     def generate_answer(self, user_query, retrieved_docs):
         context = "\n".join([doc.page_content for doc in retrieved_docs])
+        
+        #we have given prompts because the model is not self instructed so i have given some instructions for concise answer better model like falcon dont need these kind of manual prompts
         prompt = f"""
-You are an expert. Answer the question concisely based only on the context below.
+You are an expert. Answer the question concisely based only on the context below.   
 If the answer is not in the context, say "I don't know".
 
 Context:
@@ -154,3 +161,4 @@ if uploaded_files:
         answer_message = llm_agent.generate_answer(user_query, retrieved_docs)
         st.markdown("**Answer:**")
         st.write(answer_message.payload)
+
